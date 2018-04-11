@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef __USE_GNU
 #define __USE_GNU
-#define _GNU_SOURCE
+#endif
 #include <sched.h>
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <papi.h>
+
 
 // The <errno.h> header file defines the integer variable errno, which is set by system calls and some library functions in the event of an error to indicate what went wrong.
 #define print_error_then_terminate(en, msg) \
@@ -13,8 +16,8 @@
 #define print_perror_then_terminate(msg) \
   do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-  struct thread_info {
-
+  typedef struct thread_info_t* info_msg;
+  struct thread_info_t {
     pthread_t thread_id; // ID returned by pthread_create()
     int core_id; // Core ID we want this pthread to set its affinity to
   };
@@ -23,12 +26,12 @@
 #define FAILURE_MSG "Failed to set thread %lu to affinity to CPU %d\n"
 
 
-void * thread_camper(void *arg) {
+void* thread_camper(void *arg) {
 
-  struct thread_info *thread_info = arg;
+  info_msg info = (info_msg) arg;
 
   const pthread_t pid = pthread_self();
-  const int core_id = thread_info->core_id;
+  const int core_id = info->core_id;
 
   // cpu_set_t: This data set is a bitset where each bit represents a CPU.
   cpu_set_t cpuset;
@@ -57,12 +60,12 @@ void * thread_camper(void *arg) {
   if (CPU_ISSET(core_id, &cpuset)) {
 
     const size_t needed = snprintf(NULL, 0, SUCCESS_MSG, pid, core_id);
-    buffer = malloc(needed);
+    buffer = (char*) malloc(needed);
     snprintf(buffer, needed, SUCCESS_MSG, pid, core_id);
   } else {
 
     const size_t needed = snprintf(NULL, 0, FAILURE_MSG, pid, core_id);
-    buffer = malloc(needed);
+    buffer = (char*) malloc(needed);
     snprintf(buffer, needed, FAILURE_MSG, pid, core_id);
   }
 
@@ -87,7 +90,7 @@ int main(int argc, char *argv[]) {
 
   const int num_threads = 4;
   // Allocate memory for pthread_create() arguments
-  struct thread_info *thread_info = calloc(num_threads, sizeof(struct thread_info));
+  info_msg thread_info = (info_msg) calloc(num_threads, sizeof(struct thread_info_t));
   if (thread_info == NULL) {
       print_perror_then_terminate("calloc");
   }
@@ -128,3 +131,4 @@ int main(int argc, char *argv[]) {
   free(thread_info);
   return 0;
 }
+
