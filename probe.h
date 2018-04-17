@@ -3,7 +3,7 @@
 #include "papi.h"
 
 
-#define ERROR_RETURN(retval) { fprintf(stderr, "Error %d %s:line %d: \n", retval,__FILE__,__LINE__);  exit(retval); }
+#define ERROR_INT(retval) { fprintf(stderr, "Error %d %s:line %d: \n", retval,__FILE__,__LINE__);  exit(retval); }
 
 typedef struct counter_t *cpu_info;
 struct counter_t {
@@ -47,7 +47,7 @@ class Probe {
       printf("There are no counters available. \n");
       exit(-1);
    }
-   printf("There are %d counters in this system\n",num_hwcntrs);
+   // printf("There are %d counters in this system\n",num_hwcntrs);
    if (num_hwcntrs < NUM_EVENTS) {
       printf("Not enough counters support on the device.\n");
       exit(-1);
@@ -56,15 +56,15 @@ class Probe {
   }
   void start() {
     if ( (retval = PAPI_start_counters(Events, NUM_EVENTS)) != PAPI_OK)
-       ERROR_RETURN(retval);
+       ERROR_INT(retval);
   }
   void stop() {
     if ((retval=PAPI_stop_counters(retvals, NUM_EVENTS)) != PAPI_OK)
-      ERROR_RETURN(retval); 
+      ERROR_INT(retval); 
   }
   void cont() {
     if ( (retval=PAPI_accum_counters(retvals, NUM_EVENTS)) != PAPI_OK)
-      ERROR_RETURN(retval);
+      ERROR_INT(retval);
   }
 
   const struct counter_t& get_state() {
@@ -80,13 +80,14 @@ class Probe {
   }
 
   void print() {
-    printf("The total instructions are %lld and total cycles used are %lld.\n",
+    fprintf(stdout, "The total instructions are %lld and total cycles used are %lld.\n",
             retvals[0], retvals[1]);
-    printf("The total cache misss in L1, L2, L3 are %lld, %lld, %lld.\n",
+    fprintf(stdout, "The total cache misss in L1, L2, L3 are %lld, %lld, %lld.\n",
             retvals[2], retvals[3], retvals[4]);
-    printf("The total branch mis-prediction and instructions are %lld, %lld.\n",
+    fprintf(stdout, "The total branch mis-prediction and instructions are %lld, %lld.\n",
             retvals[5], retvals[6]);
-    printf("The total tlb_instruction_miss are %lld.\n", retvals[7]);
+    fprintf(stdout, "The total tlb_instruction_miss are %lld.\n", retvals[7]);
   }
 };
+
 

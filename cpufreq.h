@@ -5,7 +5,7 @@
 #include <dirent.h>
 
 
-#define ERROR_RETURN(msg) \
+#define ERROR_MSG(msg) \
   { fprintf(stderr, "Error %s %s:line %d: \n", msg,__FILE__,__LINE__);  exit(-1); }
 
 #define ROOT "/sys/devices/system/cpu/"
@@ -73,19 +73,29 @@ class Controller {
     FILE *fp;
     unsigned long ret_freq = 0;
     if (sprintf(file_path, FREQ_PATH, id) < 0) {
-      ERROR_RETURN("can't generate the cpu path");
+      ERROR_MSG("can't generate the cpu path");
     }
     printf("PATH: %s\n", file_path);
     if ((fp = fopen(file_path, "r")) == NULL) {
-      ERROR_RETURN("can't open cpu_freq file.");
+      ERROR_MSG("can't open cpu_freq file.");
     } else {
       if (!fscanf(fp, "%lu", &ret_freq)) {
-        ERROR_RETURN("can't read cpu_freq from file.");
+        ERROR_MSG("can't read cpu_freq from file.");
       }
       fclose(fp);
     }
     states[id].freq = ret_freq;
     return ret_freq;
+  }
+
+  int convert_cpu_policy_to_enum(const char * str) {
+    int ret_policy = kInvalid;
+    for (int i = 0; i < kNumPolicy; i++) {
+      if (!strcmp(str, policy_string[i])) {
+        ret_policy = i;
+      }
+    }
+    return ret_policy;
   }
 
   int get_cpu_policy(int id) {
@@ -94,37 +104,37 @@ class Controller {
     FILE *fp;
     int ret_policy = kInvalid;
     if (sprintf(file_path, GOV_PATH, id) < 0) {
-      ERROR_RETURN("can't generate the cpu path");
+      ERROR_MSG("can't generate the cpu path");
     }
     printf("PATH: %s\n", file_path);
     if ((fp = fopen(file_path, "r")) == NULL) {
-      ERROR_RETURN("can't open cpu_freq file.");
+      ERROR_MSG("can't open cpu_freq file.");
     } else {
       if (!fscanf(fp, "%s", ret_str)) {
-        ERROR_RETURN("can't read cpu_freq from file.");
+        ERROR_MSG("can't read cpu_freq from file.");
       }
       fclose(fp);
     }
-    for (int i = 0; i < kNumPolicy; i++) {
-      if (!strcmp(ret_str, policy_string[i])) {
-        ret_policy = i;
-      }
-    }
+    ret_policy = convert_cpu_policy_to_enum(ret_str);
     return ret_policy;
   }
 
   void change_cpu_policy(int id, int policy) {
-    char cmd[50];
+    char cmd[48];
+    char num[4];
+    char str[12];
+
     if (sprintf(cmd, "sudo cpufreq-set -c %d -g %s", id, policy_string[policy]) < 0) {
-      ERROR_RETURN("can't generate the command");
+      ERROR_MSG("can't generate the command");
     }
     printf("CMD: %s\n", cmd);
     if (system(cmd) == -1) {
-      ERROR_RETURN("can't execute the command.");
+      ERROR_MSG("can't execute the command.");
     }
   }
-  int get_num_cpu() {
+  const int get_num_cpu() {
     return num_cpu;
   }
 };
+
 

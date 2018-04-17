@@ -58,7 +58,7 @@ struct program_info_t {
 int main(int argc, char **argv, char **envp)
 {
     int num_cpus = sysconf( _SC_NPROCESSORS_ONLN );
-
+    printf("The number %d of CPU available in this machine.\n", num_cpus);
     char c;
     int index = 0;
     char cmdline[MAXLINE];  // Cmdline for fgets
@@ -108,8 +108,6 @@ int main(int argc, char **argv, char **envp)
         if (index < 0) {
             ERROR_RETURN("can't parse this line.");
         }
-
-        printf("after: %d,  %s\n", index, (cmdline+index));
         // Evaluate the command line
         eval(0, argv, envp, &(cmdline[index]));
         fflush(stdout);

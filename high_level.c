@@ -1,5 +1,4 @@
-/*****************************************************************************
-*  This example code shows how to use most of PAPI's High level functions    * 
+/* Some example code shows how to use most of PAPI's High level functions    * 
 *  to start,count,read and stop on an event set. We use two preset events    *
 *  here:                                                                     *
 *     PAPI_TOT_INS: Total instructions executed in a period of time          *
@@ -158,3 +157,4 @@ int main()
              values[5], values[6]);
    exit(0); 
 }
+
