@@ -25,6 +25,7 @@ int parse_cmd(const char *);
 ssize_t sio_puts(char *);
 
 void sigchld_handler(int sig);
+void sigusr1_handler(int sig);
 
 const char * prompt = "~Sh>>";
 Controller *controller;
@@ -49,6 +50,8 @@ int main(int argc, char **argv) {
   bool emit_prompt = true;    // Emit prompt (default)
 
   signal(SIGCHLD, sigchld_handler);
+  signal(SIGUSR1, SIG_IGN);
+  signal(SIGUSR2, SIG_IGN);
 
   printf("The usage of this program:\nPlease enter: \'<PROGRAM>\' <CPU> <POLICY>\n");
 
@@ -59,20 +62,21 @@ int main(int argc, char **argv) {
   {
     if (emit_prompt)
     {
-      printf("%s", prompt);
+      fprintf(stdout, "%s", prompt);
       fflush(stdout);
     }
-
+    usleep(10);
+    kill(0, SIGUSR2);
     if ((fgets(cmdline, MAXLINE, stdin) == NULL) && ferror(stdin))
     {
-      printf("ERROR: can't read the command properly.\n");
+      fprintf(stderr, "ERROR: can't read the command properly.\n");
       exit(-1);
     }
 
     if (feof(stdin))
     {
     // End of file (ctrl-d)
-      printf ("\n");
+      fprintf (stdout, "\n");
       fflush(stdout);
       fflush(stderr);
       return 0;
@@ -97,10 +101,13 @@ int main(int argc, char **argv) {
       token = strtok(NULL, " ");
     };
     prog_argv[prog_argc] = (char *)0;
-    printf("the program argc is %d, argv: %s\n", prog_argc, program_line);
+    fprintf(stdout, "the program argc is %d, argv: %s\n", prog_argc, program_line);
     // Evaluate the command line
     eval(prog_argc, prog_argv, &(cmdline[index]));
     fflush(stdout);
+    fflush(stderr);
+    usleep(10);
+    kill(0, SIGUSR2);
   }
 return -1; // control never reaches here
 }
@@ -149,7 +156,7 @@ void eval(int prog_argc, char **prog_argv, char *cmdline)
   char program_name[MAXLINE];
   char policy_name[MAXLINE];
 
-  printf("left cmd: %s\n", cmdline);
+  // fprintf(stdout, "left cmd: %s\n", cmdline);
   // Parse command line
   if (sscanf(cmdline, "%d %s", &cpu, policy_name) !=  2) {
     ERROR_MSG("Input command is invalid.\n");
@@ -166,48 +173,40 @@ void eval(int prog_argc, char **prog_argv, char *cmdline)
     ERROR_MSG("current policy or cpu id is invalid.");
   }
 
+  sigset_t ourmask;
+  sigset_t prev_mask;    // save previous mask;
 
   // check if built-in commands
   if (builtin(program_name)) {
     pid_t pid;
     controller->change_cpu_policy(cpu, policy);
 
-    Probe* probe = new Probe();
-    if ((pid = fork()) == 0) {
-      if (setpgid(0, 0) == -1) 
-        ERROR_MSG("Set process group ID, ");
+    sigset_t ourmask;
+    sigset_t prev_mask;    // save previous mask;
 
+    sigfillset(&ourmask);  // make a full-blocked mask;
+    sigprocmask(SIG_BLOCK, &ourmask, &prev_mask);   // switch mask
+
+    if ((pid = fork()) == 0) {
       cpu_set_t cpuset;
       CPU_ZERO(&cpuset);
       CPU_SET(cpu, &cpuset);
+
       if (sched_setaffinity(getpid(), sizeof(cpuset), &cpuset) == -1)
         ERROR_MSG("set affinity failed");
 
-      probe->init();
-      probe->start();
+      // switch back the mask;
+      // sigprocmask(SIG_SETMASK, &prev_mask, NULL);
 
-      if ((pid = fork()) == 0) {
-        if (setpgid(0, 0) == -1) 
-          ERROR_MSG("Set process group ID, ");
-
-        if (sched_setaffinity(getpid(), sizeof(cpuset), &cpuset) == -1)
-          ERROR_MSG("set affinity failed");
-
-        // start the real function part;
-        if (execvp(prog_argv[0], prog_argv) == -1) {
-          ERROR_MSG("Execvp can't be run, ")
-        }
-      } else {
-        pause();
-        probe->stop();
-        probe->print();
-        exit(0);
+      // start the real function part;
+      if (execvp(prog_argv[0], prog_argv) == -1) {
+        ERROR_MSG("Execvp can't be run, ");
+        fflush(stderr);
       }
     } else {
-      pid_q.push_back(pid);  
-      pid_map[pid] = probe; 
-    } 
-    
+      sigprocmask(SIG_SETMASK, &prev_mask, NULL);
+      pid_q.push_back(pid);
+    }
   }
 }
 
@@ -230,7 +229,12 @@ void sigchld_handler(int sig)
     while ((pid = waitpid (-1, &status, WNOHANG|WUNTRACED)) > 0 ) 
     {
       continue;
-        
     }
 }
 
+
+void sigusr1_handler(int sig)
+{
+    pid_t pid;
+    fprintf(stdout, "parent recieved signal...pid is %d\n", getpid());
+}

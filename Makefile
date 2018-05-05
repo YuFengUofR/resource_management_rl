@@ -1,4 +1,4 @@
-all: control_test main2
+all: control_test main2 compute
 
 CXX=g++
 LDFLAGS=-L/usr/local/lib -lpapi -lpthread
@@ -10,4 +10,7 @@ control_test: control.cc # $(DEPS)
 
 
 main2: main2.cc ${DEPS}
+	$(CXX) $(CFALGS)  $< $(LDFLAGS) -o $@
+
+compute: compute.cc ${DEPS}
 	$(CXX) $(CFALGS)  $< $(LDFLAGS) -o $@

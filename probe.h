@@ -44,12 +44,12 @@ class Probe {
       exit(-1);
    }
    if ((num_hwcntrs = PAPI_num_counters()) < PAPI_OK) {
-      printf("There are no counters available. \n");
+      fprintf(stderr, "There are no counters available. \n");
       exit(-1);
    }
    // printf("There are %d counters in this system\n",num_hwcntrs);
    if (num_hwcntrs < NUM_EVENTS) {
-      printf("Not enough counters support on the device.\n");
+      fprintf(stderr, "Not enough counters support on the device.\n");
       exit(-1);
    }
    
