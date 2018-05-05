@@ -14,7 +14,7 @@
 #include "cpufreq.h"
 #include "probe.h"
 
-#define MAXLINE 50
+#define MAXLINE 100
 #define MAXARGV 10
 
 /* Function prototypes */
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
      while (token != NULL) {
       prog_argv[prog_argc] = (char *) calloc(strlen(token), sizeof(char));
       strcpy(prog_argv[prog_argc], token);
-      printf("%s\n", prog_argv[prog_argc]);
+      // printf("%s\n", prog_argv[prog_argc]);
       prog_argc++;
       token = strtok(NULL, " ");
     };
@@ -149,6 +149,7 @@ void eval(int prog_argc, char **prog_argv, char *cmdline)
   char program_name[MAXLINE];
   char policy_name[MAXLINE];
 
+  printf("left cmd: %s\n", cmdline);
   // Parse command line
   if (sscanf(cmdline, "%d %s", &cpu, policy_name) !=  2) {
     ERROR_MSG("Input command is invalid.\n");
