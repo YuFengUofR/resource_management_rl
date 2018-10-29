@@ -5,6 +5,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <cstdint>
 
 #define MAXARGV 9
 #define MAXTOKEN 20
@@ -23,6 +25,10 @@ int main(int argc, char** argv) {
     fprintf(stderr, "USAGE: ./<self> <num> <sleep_time> <policy>");
     exit(-1);
   }
+  // This program defines a single-stage imaging pipeline that
+  // brightens an image.
+  struct timespec start, end;
+  uint64_t delta_ms = 0;
 
   char cmd[48];
   if (sprintf(cmd, "sudo cpufreq-set -r -g %s", argv[3]) < 0)
@@ -52,6 +58,7 @@ int main(int argc, char** argv) {
   strcpy(prog_argv[7], "simlarge");
   prog_argv[8] = (char *) 0;
 
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pid_t pid;
   for (int i = 0; i < round; i++) {
     unsigned int num = (rand() % 9);
@@ -71,7 +78,12 @@ int main(int argc, char** argv) {
       break;
     }
   }
+  clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+  delta_ms += (end.tv_sec-start.tv_sec) * 1000
+                        + (end.tv_nsec-start.tv_nsec) / 1000000;
+
   fprintf(stdout, "DONE!\n");
+  fprintf(stdout, "[IMPORTANT_RESULT] Total run time : %lu ms.\n", delta_ms);
   return 0;
 }
 

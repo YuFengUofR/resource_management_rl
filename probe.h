@@ -19,13 +19,13 @@ struct counter_t {
 
 char errstring[PAPI_MAX_STR_LEN];
 int NUM_EVENTS = 8;
-int Events[8] = {PAPI_TOT_INS, PAPI_TOT_CYC, 
+int Events[8] = {PAPI_TOT_INS, PAPI_TOT_CYC,
                   PAPI_L1_TCM, PAPI_L2_TCM, PAPI_L3_TCM,
                   PAPI_BR_MSP, PAPI_BR_INS,
                   PAPI_TLB_IM};
 
 class Probe {
-  long long *retvals; 
+  long long *retvals;
   cpu_info state;
   int retval;
   int num_hwcntrs;
@@ -52,7 +52,7 @@ class Probe {
       fprintf(stderr, "Not enough counters support on the device.\n");
       exit(-1);
    }
-   
+
   }
   void start() {
     if ( (retval = PAPI_start_counters(Events, NUM_EVENTS)) != PAPI_OK)
@@ -60,7 +60,7 @@ class Probe {
   }
   void stop() {
     if ((retval=PAPI_stop_counters(retvals, NUM_EVENTS)) != PAPI_OK)
-      ERROR_INT(retval); 
+      ERROR_INT(retval);
   }
   void cont() {
     if ( (retval=PAPI_accum_counters(retvals, NUM_EVENTS)) != PAPI_OK)
