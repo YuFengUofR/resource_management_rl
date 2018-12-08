@@ -19,7 +19,7 @@ void * queue_server(void * args) {
 	ssize_t bytes_read;
     struct mq_attr attr;
     char buffer[MAX_SIZE + 1];
-
+    int cnt = 0;
     /* initialize the queue attributes */
     attr.mq_flags = 0;
     attr.mq_maxmsg = 10;
@@ -28,9 +28,10 @@ void * queue_server(void * args) {
 
     /* create the message queue */
     mq = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY | O_NONBLOCK, 0644, &attr);
-
-    while(1) {
-		
+    /* cleanup */
+    // mq_close(mq);
+    // mq_unlink(QUEUE_NAME);
+    while(cnt < 150) {
 		memset(buffer, 0x00, sizeof(buffer));
         bytes_read = mq_receive(mq, buffer, MAX_SIZE, NULL);
         if(bytes_read >= 0) {
@@ -38,7 +39,6 @@ void * queue_server(void * args) {
 		} else {
 			printf("SERVER: None \n");
 		}
-		
 		fflush(stdout);
 		usleep(0.725 * 1e6);
     }
@@ -52,7 +52,6 @@ void * queue_server(void * args) {
 
 
 void * queue_client(void * args) {
-	
 	mqd_t mq;
     char buffer[MAX_SIZE];
 
@@ -60,12 +59,10 @@ void * queue_client(void * args) {
     mq = mq_open(QUEUE_NAME, O_WRONLY);
 
 	int count = 0;
-    while(1) {
+    while(count < 10) {
         snprintf(buffer, sizeof(buffer), "MESSAGE %d", count++);
-		
 		printf("CLIENT: Send message... \n");
         mq_send(mq, buffer, MAX_SIZE, 0);
-		
 		fflush(stdout);
 		usleep(7.33 * 1e6);
     }

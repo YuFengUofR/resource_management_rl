@@ -1,3 +1,6 @@
+#ifndef RL_CPU_FREQ_H
+#define RL_CPU_FREQ_H
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -32,7 +35,7 @@ typedef struct cpu_state_t * cpu_state;
 struct cpu_state_t {
   int id;
   Policy policy;
-  unsigned long freq;   
+  unsigned long freq;
 };
 
 class Controller {
@@ -75,7 +78,7 @@ class Controller {
     if (sprintf(file_path, FREQ_PATH, id) < 0) {
       ERROR_MSG("can't generate the cpu path");
     }
-    printf("PATH: %s\n", file_path);
+    // printf("PATH: %s\n", file_path);
     if ((fp = fopen(file_path, "r")) == NULL) {
       ERROR_MSG("can't open cpu_freq file.");
     } else {
@@ -106,7 +109,7 @@ class Controller {
     if (sprintf(file_path, GOV_PATH, id) < 0) {
       ERROR_MSG("can't generate the cpu path");
     }
-    printf("PATH: %s\n", file_path);
+    // printf("PATH: %s\n", file_path);
     if ((fp = fopen(file_path, "r")) == NULL) {
       ERROR_MSG("can't open cpu_freq file.");
     } else {
@@ -137,4 +140,4 @@ class Controller {
   }
 };
 
-
+#endif

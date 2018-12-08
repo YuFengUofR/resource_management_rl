@@ -1,8 +1,8 @@
 all: control_test main compute
 
-CXX=g++
+CXX=g++ -std=c++11
 LDFLAGS=-L/usr/local/lib -lpapi -lpthread -lrt
-DEPS = probe.h cpufreq.h
+DEPS = probe.h cpufreq.h msg_control.h
 CFLAGS = -O3 -g -Wall
 
 control_test: control.cc # $(DEPS)

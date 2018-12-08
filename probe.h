@@ -1,3 +1,6 @@
+#ifndef RL_PROBE_H
+#define RL_PROBE_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "papi.h"
@@ -91,3 +94,4 @@ class Probe {
 };
 
 
+#endif
