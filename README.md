@@ -77,6 +77,18 @@ $ sudo parsecmgmt -a run -p -i sim<small|middle|large>
 
 If this cannot work, you might need to dig into each benchmark suit and make them manually :). 
 
+##### Enable old OS governor
+
+You need to disable  `intel_pstate` in order to invoke old OS governor, such as `Ondemand`. To do so, write below into `/etc/default/grub` file.
+```sh
+GRUB_CMDLINE_LINUX_DEFAULT="intel_pstate=disable"
+```
+
+And then, updating `grub.cfg` using 
+```sh
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
 ##### Install this runtime
 
 Clone this repo and 
