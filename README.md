@@ -86,7 +86,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="intel_pstate=disable"
 
 And then, updating `grub.cfg` using 
 ```sh
-grub-mkconfig -o /boot/grub/grub.cfg
+$ grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
 ##### Install this runtime
